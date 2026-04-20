@@ -13,16 +13,21 @@ DATASET_TABLE = "retail_warehouse.integrated_retail_data"
 # --- 2. FUNGSI AUTHENTICATION (KUNCI AKSES) ---
 def get_gcp_credentials():
     if "gcp_service_account" in st.secrets:
-        # Langsung ambil sebagai dictionary, tidak perlu json.loads
-        s_account_info = dict(st.secrets["gcp_service_account"])
+        # Streamlit otomatis membaca format [section] sebagai dictionary
+        s_account_info = st.secrets["gcp_service_account"]
         
-        # Tetap bersihkan private_key untuk berjaga-jaga
-        s_account_info["private_key"] = s_account_info["private_key"].replace("\\n", "\n")
+        # PERBAIKAN: Karena TOML kadang sensitif dengan backslash, 
+        # kita pastikan private_key terbaca dengan baris baru yang benar
+        # Kita buat copy agar tidak merubah data asli di secrets
+        credentials_dict = dict(s_account_info)
+        credentials_dict["private_key"] = credentials_dict["private_key"].replace("\\n", "\n")
         
-        return service_account.Credentials.from_service_account_info(s_account_info)
+        return service_account.Credentials.from_service_account_info(credentials_dict)
     else:
+        # Untuk jalankan di laptop (Local)
         if os.path.exists("credentials.json"):
             return service_account.Credentials.from_service_account_file("credentials.json")
+        return None
 
 # Inisialisasi Credentials
 credentials = get_gcp_credentials()
