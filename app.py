@@ -13,16 +13,14 @@ DATASET_TABLE = "retail_warehouse.integrated_retail_data"
 # --- 2. FUNGSI AUTHENTICATION (KUNCI AKSES) ---
 def get_gcp_credentials():
     if "gcp_service_account" in st.secrets:
-        # 1. Ambil data dari Secrets
-        s_account_info = json.loads(st.secrets["gcp_service_account"])
+        # Langsung ambil sebagai dictionary, tidak perlu json.loads
+        s_account_info = dict(st.secrets["gcp_service_account"])
         
-        # 2. PERBAIKAN: Paksa bersihkan format private_key
-        # Ini akan mengganti teks "\n" menjadi karakter newline asli
+        # Tetap bersihkan private_key untuk berjaga-jaga
         s_account_info["private_key"] = s_account_info["private_key"].replace("\\n", "\n")
         
         return service_account.Credentials.from_service_account_info(s_account_info)
     else:
-        # Kode untuk lokal tetap sama
         if os.path.exists("credentials.json"):
             return service_account.Credentials.from_service_account_file("credentials.json")
 
