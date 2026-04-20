@@ -12,21 +12,19 @@ DATASET_TABLE = "retail_warehouse.integrated_retail_data"
 
 # --- 2. FUNGSI AUTHENTICATION (KUNCI AKSES) ---
 def get_gcp_credentials():
-    """
-    Mengambil credentials dari Streamlit Secrets (Cloud) 
-    atau file lokal credentials.json (Lokal)
-    """
     if "gcp_service_account" in st.secrets:
-        # Jika di Streamlit Cloud
+        # 1. Ambil data dari Secrets
         s_account_info = json.loads(st.secrets["gcp_service_account"])
+        
+        # 2. PERBAIKAN: Paksa bersihkan format private_key
+        # Ini akan mengganti teks "\n" menjadi karakter newline asli
+        s_account_info["private_key"] = s_account_info["private_key"].replace("\\n", "\n")
+        
         return service_account.Credentials.from_service_account_info(s_account_info)
     else:
-        # Jika di Lokal (pastikan file credentials.json ada di folder yang sama)
+        # Kode untuk lokal tetap sama
         if os.path.exists("credentials.json"):
             return service_account.Credentials.from_service_account_file("credentials.json")
-        else:
-            st.error("Kunci akses (credentials.json) tidak ditemukan!")
-            return None
 
 # Inisialisasi Credentials
 credentials = get_gcp_credentials()
